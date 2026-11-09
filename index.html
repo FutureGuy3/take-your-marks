@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Take Your Marks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="description" content="競泳スタートの笛・Take your marks・号令とフラッシュを一人で鳴らせる練習用アプリ">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Take Your Marks">
+<style>
+:root{
+  --bg:#0a0a0a;--card:#131313;--card2:#1a1a1a;--line:#262626;
+  --fg:#f2f2f2;--muted:#8c8c8c;
+  --or:#ff7a1a;--or2:#ff9a3d;--or-dim:rgba(255,122,26,.14);
+  --danger:#ff4d2e;
+  --disp:"Barlow Condensed",system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
+  padding:calc(20px + env(safe-area-inset-top)) 16px calc(48px + env(safe-area-inset-bottom));max-width:560px;margin-inline:auto;
+  background-image:radial-gradient(120% 60% at 50% -10%,rgba(255,122,26,.10),transparent 60%)}
+header{display:flex;align-items:baseline;justify-content:space-between;margin:0 2px 16px}
+h1{font-family:var(--disp);font-weight:800;font-size:30px;letter-spacing:.06em;text-transform:uppercase;margin:0;line-height:1}
+h1 b{color:var(--or)}
+header small{font-family:var(--disp);font-size:13px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase}
+h2{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-size:14px;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--or);margin:0 0 6px}
+.card>h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+button{font:inherit;border:1px solid var(--line);border-radius:14px;padding:14px;color:var(--fg);
+  background:var(--card2);width:100%;font-weight:700;cursor:pointer;transition:transform .08s,filter .15s,opacity .15s}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.35}
+#prep{background:transparent;border:1px solid var(--or);color:var(--or)}
+#go{margin-top:6px;border:0;color:#111;font-family:var(--disp);font-size:46px;font-weight:800;letter-spacing:.18em;line-height:1;
+  text-transform:uppercase;padding:24px;background:linear-gradient(180deg,var(--or2),var(--or));
+  box-shadow:0 10px 30px -8px rgba(255,122,26,.55),inset 0 1px 0 rgba(255,255,255,.35)}
+#go:disabled{box-shadow:none}
+#stop{margin-top:10px;background:transparent;border:1px solid rgba(255,77,46,.5);color:var(--danger)}
+.row{display:flex;gap:8px;margin-top:10px}
+.row button{font-weight:600;font-size:13px;padding:12px 6px;color:#d8d8d8}
+button.sub{font-weight:600;font-size:13px;padding:12px;margin-top:6px;color:#d8d8d8}
+#status{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.6}
+.display{background:#000;border:1px solid var(--line);border-radius:14px;padding:14px 10px 10px;margin-bottom:6px;
+  box-shadow:inset 0 0 40px rgba(255,122,26,.06)}
+#phase{font-family:var(--disp);font-size:22px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  text-align:center;min-height:28px;color:var(--muted)}
+#count{font-family:var(--disp);font-size:96px;font-weight:800;text-align:center;line-height:1;min-height:96px;
+  color:var(--or);font-variant-numeric:tabular-nums;text-shadow:0 0 30px rgba(255,122,26,.35)}
+label{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:14px 0 6px;font-size:14px;color:#dcdcdc}
+label span{font-family:var(--disp);font-size:18px;font-weight:600;color:var(--or);font-variant-numeric:tabular-nums;letter-spacing:.03em}
+input[type=number],select{font:inherit;font-size:15px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);
+  background:#0c0c0c;color:var(--fg);outline:none}
+input[type=number]{width:92px;text-align:right;font-family:var(--disp);font-size:18px;font-weight:600}
+input[type=number]:focus,select:focus{border-color:var(--or);box-shadow:0 0 0 3px var(--or-dim)}
+select{max-width:62%;appearance:none;-webkit-appearance:none;padding-right:30px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--or) 50%),linear-gradient(135deg,var(--or) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat}
+input[type=checkbox]{appearance:none;-webkit-appearance:none;width:46px;height:26px;border-radius:99px;background:#2a2a2a;
+  position:relative;flex:none;transition:background .2s;cursor:pointer;margin:0}
+input[type=checkbox]::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+  background:#bdbdbd;transition:transform .2s,background .2s}
+input[type=checkbox]:checked{background:var(--or)}
+input[type=checkbox]:checked::after{transform:translateX(20px);background:#111}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:#2a2a2a}
+input[type=range]::-moz-range-track{height:4px;border-radius:4px;background:#2a2a2a}
+input[type=range]::-moz-range-progress{height:4px;border-radius:4px;background:var(--or)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-9px;border-radius:50%;
+  background:var(--or);border:3px solid #0a0a0a;box-shadow:0 0 0 1px var(--or),0 2px 10px rgba(255,122,26,.45)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--or);border:3px solid #0a0a0a}
+.hint{font-size:12px;color:var(--muted);line-height:1.6;margin-top:6px}
+video{width:64px;height:86px;object-fit:cover;border-radius:10px;background:#000;border:1px solid var(--line);float:right;margin-left:12px}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none}
+.recbox{margin-top:10px;padding:12px;border:1px dashed var(--line);border-radius:12px;text-align:center;
+  font-family:var(--disp);font-size:18px;font-weight:600;letter-spacing:.05em;color:var(--muted)}
+.recbox.ok{color:var(--or);border-color:rgba(255,122,26,.4)}
+.recbox.live{color:var(--danger);border-color:var(--danger)}
+#recBtn.on{background:var(--danger);border-color:transparent;color:#fff}
+
+/* 折りたたみ */
+details.fold{padding:0}
+details.fold>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:16px;cursor:pointer;user-select:none}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary h2{flex:1;margin:0}
+details.fold>summary::after{content:"";width:9px;height:9px;flex:none;border-right:2px solid var(--or);border-bottom:2px solid var(--or);
+  transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s}
+details.fold[open]>summary::after{transform:rotate(-135deg) translate(-2px,-2px)}
+details.fold>.body{padding:0 16px 16px}
+details.fold:not([open])>summary h2{color:#cfcfcf}
+.badge{font-style:normal;font-family:var(--disp);font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.badge.ok{color:#111;background:var(--or);border-color:transparent}
+.badge.ng{color:var(--danger);border-color:rgba(255,77,46,.5)}
+/* テストボタン */
+.tests{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.tests-cap{display:block;font-family:var(--disp);font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.tgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tgrid button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;font-size:13px;font-weight:600;color:#d8d8d8}
+.tgrid button i{font-style:normal;font-size:16px;line-height:1;color:var(--or)}
+</style>
+</head>
+<body>
+<header><h1>Take Your <b>Marks</b></h1><small>Start System</small></header>
+
+
+<div class="card">
+  <div class="display">
+    <div id="phase">Ready</div>
+    <div id="count"></div>
+  </div>
+  <button id="go" disabled>START</button>
+  <button id="stop" disabled>中止</button>
+  <div class="tests">
+    <span class="tests-cap">Test</span>
+    <div class="tgrid">
+      <button id="tWhistle" disabled><i>♪</i>笛</button>
+      <button id="tVoice2" disabled><i>◉</i>発声</button>
+      <button id="tSound" disabled><i>▲</i>号令</button>
+      <button id="tFlash" disabled><i>✦</i>光</button>
+    </div>
+  </div>
+</div>
+
+<details class="card fold" id="camCard" open>
+  <summary><h2>カメラ・準備</h2><em id="camBadge" class="badge">未準備</em></summary>
+  <div class="body">
+    <video id="pv" playsinline muted autoplay></video>
+    <button id="prep">準備（カメラ・音声を有効化）</button>
+    <div id="status">未準備</div>
+    <div style="clear:both"></div>
+  </div>
+</details>
+
+<details class="card fold" data-key="vol">
+  <summary><h2>音量</h2></summary>
+  <div class="body">
+  <label>全体 <span id="volV"></span></label>
+  <input type="range" id="vol" min="0" max="100" step="5">
+  <label>笛（ピッ・ピー） <span id="volWhistleV"></span></label>
+  <input type="range" id="volWhistle" min="0" max="150" step="5">
+  <label>発声（Take your marks） <span id="volVoiceV"></span></label>
+  <input type="range" id="volVoice" min="0" max="200" step="5">
+  <label>号令（スタート音） <span id="volBeepV"></span></label>
+  <input type="range" id="volBeep" min="0" max="200" step="5">
+  <div class="hint">笛は150%、号令と録音した声は200%まで。100%を超えると音を飽和させて音圧を上げます（音色は少し硬くなります）。読み上げの声は100%が上限です。</div>
+  <div class="hint">アプリ内の音量です。最大音量は端末本体の音量で決まります。</div>
+  </div>
+</details>
+
+<details class="card fold" data-key="beep">
+  <summary><h2>号令の音</h2></summary>
+  <div class="body">
+  <label>音色 <select id="beepType">
+    <option value="horn">ホーン</option>
+    <option value="whistle">笛と同じ音</option>
+    <option value="bright">高音（矩形波）</option>
+  </select></label>
+  <label>周波数 <span id="beepFreqV"></span></label>
+  <input type="range" id="beepFreq" min="300" max="4000" step="10">
+  <div class="row">
+    <button id="beepReset">周波数を初期値に</button>
+    <button id="tBeep2">号令テスト</button>
+  </div>
+  <div class="hint">周波数は音色ごとに記憶します。初期値：ホーン 880Hz／笛 2900Hz／高音 2000Hz</div>
+  </div>
+</details>
+
+<details class="card fold" data-key="flow">
+  <summary><h2>進行</h2></summary>
+  <div class="body">
+  <label>セルフタイマー（秒） <input type="number" id="timer" step="1" min="0"></label>
+  <label>笛（ピッ×4 → ピー） <input type="checkbox" id="whistle"></label>
+  <label>ピッとピッの間隔 <span id="shortGapV"></span></label>
+  <input type="range" id="shortGap" min="0.1" max="1.0" step="0.1">
+  <label>最後のピッとピーの間隔 <span id="longGapV"></span></label>
+  <input type="range" id="longGap" min="0.2" max="3.0" step="0.1">
+  <div class="hint">どちらも音が鳴っていない無音部分の長さです。</div>
+  <label>長い笛 → 号令 最小（秒） <input type="number" id="climbMin" step="0.5" min="0"></label>
+  <label>長い笛 → 号令 最大（秒） <input type="number" id="climbMax" step="0.5" min="0"></label>
+  <label>ホールド最小（秒） <input type="number" id="holdMin" step="0.1" min="0.3"></label>
+  <label>ホールド最大（秒） <input type="number" id="holdMax" step="0.1" min="0.3"></label>
+  <div class="hint">ホールド＝号令の後、スタート音までの間隔です。最小〜最大の間でランダムに決まります。</div>
+  </div>
+</details>
+
+<details class="card fold" data-key="voice">
+  <summary><h2>発声</h2></summary>
+  <div class="body">
+  <label>「Take your marks」の発声 <input type="checkbox" id="voice"></label>
+  <label>声の種類 <select id="voiceSrc">
+    <option value="rec">録音した声</option>
+    <option value="tts">読み上げ</option>
+  </select></label>
+  <div id="recOpts">
+    <div class="recbox"><span id="recInfo">未録音</span></div>
+    <div class="row">
+      <button id="recBtn">● 録音</button>
+      <button id="recDel">削除</button>
+    </div>
+    <label>声の強調（騒がしい場所向け） <input type="checkbox" id="enhance"></label>
+    <div class="hint">「● 録音」を押して「Take your marks」と言い、「■ 停止」を押します（4秒で自動停止）。前後の無音は自動でカットし、音量を最大まで揃えます。<br>強調をオンにすると、低音カット・子音の帯域を強調・圧縮をかけて、ザワザワの中でも通る音にします。</div>
+  </div>
+  <div id="ttsOpts">
+    <label>声 <select id="voiceSel"></select></label>
+    <label>読み上げ速度 <span id="rateV"></span></label>
+    <input type="range" id="rate" min="0.5" max="1.2" step="0.05">
+    <div class="hint">声の性別はブラウザから判別できないため、端末に入っている声の一覧から選びます。</div>
+  </div>
+  <button id="tVoice" class="sub">声テスト</button>
+  </div>
+</details>
+
+<details class="card fold" data-key="flash">
+  <summary><h2>フラッシュ</h2></summary>
+  <div class="body">
+  <label>発光時間（ms） <input type="number" id="flashMs" step="50" min="50"></label>
+  <label>光の補正（ms） <span id="offV"></span></label>
+  <input type="range" id="offset" min="-300" max="300" step="5">
+  <div class="hint">プラス＝光を遅らせる／マイナス＝光を早める。</div>
+  </div>
+</details>
+
+<div id="flash"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const KEY = 'takeYourMarks';
+const S = {vol:80, volWhistle:100, volVoice:100, volBeep:100, timer:10, whistle:true, shortGap:0.3, longGap:1.0, voiceName:'', rate:0.75, climbMin:3, climbMax:5, voice:true, holdMin:1.5, holdMax:2.2, flashMs:300, offset:0};
+try{ Object.assign(S, JSON.parse(localStorage.getItem(KEY) || localStorage.getItem('startSignal') || '{}')); }catch(e){}
+const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
+const BEEP_DEFAULT = {horn:880, whistle:2900, bright:2000};
+if(!S.beepType) S.beepType = 'bright';
+S.beepFreq = Object.assign({}, BEEP_DEFAULT, S.beepFreq || {});
+
+function bindSettings(){
+  const num = ['timer','climbMin','climbMax','holdMin','holdMax','flashMs'];
+  num.forEach(k => {
+    const el = $(k);
+    el.value = S[k];
+    el.inputMode = 'decimal';
+    // タップしたら空欄にして入力しやすく。何も入力せずに離れたら元の値に戻す
+    el.onfocus = () => { el.dataset.prev = el.value; el.value = ''; };
+    el.onblur = () => {
+      if(el.value === '' || isNaN(+el.value)) el.value = el.dataset.prev;
+      S[k] = +el.value; save();
+    };
+  });
+  ['whistle','voice'].forEach(k => { $(k).checked = S[k]; $(k).onchange = e => { S[k] = e.target.checked; save(); }; });
+  ['shortGap','longGap'].forEach(k => {
+    const show = () => $(k + 'V').textContent = S[k].toFixed(1) + ' 秒';
+    $(k).value = S[k]; show();
+    $(k).oninput = e => { S[k] = Math.round(+e.target.value * 10) / 10; show(); save(); };
+  });
+  const showRate = () => $('rateV').textContent = '×' + S.rate.toFixed(2);
+  $('rate').value = S.rate; showRate();
+  $('rate').oninput = e => { S.rate = +e.target.value; showRate(); save(); };
+  $('voiceSel').onchange = e => { S.voiceName = e.target.value; save(); };
+  if(!S.voiceSrc) S.voiceSrc = 'rec';
+  if(S.enhance === undefined) S.enhance = true;
+  const showSrc = () => {
+    $('recOpts').style.display = S.voiceSrc === 'rec' ? '' : 'none';
+    $('ttsOpts').style.display = S.voiceSrc === 'tts' ? '' : 'none';
+  };
+  $('voiceSrc').value = S.voiceSrc; showSrc();
+  $('voiceSrc').onchange = e => { S.voiceSrc = e.target.value; showSrc(); save(); };
+  $('enhance').checked = S.enhance;
+  $('enhance').onchange = e => { S.enhance = e.target.checked; save(); };
+  ['volWhistle','volVoice','volBeep'].forEach(k => {
+    $(k).value = S[k]; $(k + 'V').textContent = S[k] + '%';
+    $(k).oninput = e => { S[k] = +e.target.value; $(k + 'V').textContent = S[k] + '%'; save(); };
+  });
+  const showFreq = () => { $('beepFreq').value = S.beepFreq[S.beepType]; $('beepFreqV').textContent = S.beepFreq[S.beepType] + ' Hz'; };
+  $('beepType').value = S.beepType; showFreq();
+  $('beepType').onchange = e => { S.beepType = e.target.value; showFreq(); save(); };
+  $('beepFreq').oninput = e => { S.beepFreq[S.beepType] = +e.target.value; showFreq(); save(); };
+  $('beepReset').onclick = () => { S.beepFreq[S.beepType] = BEEP_DEFAULT[S.beepType]; showFreq(); save(); };
+  $('vol').value = S.vol; $('volV').textContent = S.vol + '%';
+  $('vol').oninput = e => { S.vol = +e.target.value; $('volV').textContent = S.vol + '%'; if(master) master.gain.value = S.vol / 100; save(); };
+  $('offset').value = S.offset; $('offV').textContent = S.offset + ' ms';
+  $('offset').oninput = e => { S.offset = +e.target.value; $('offV').textContent = S.offset + ' ms'; save(); };
+}
+
+let ctx, master, shaper, bus, track, torchOK = false, busy = false, abort = false, wakeLock;
+bindSettings();
+
+async function prepare(){
+  const st = $('status');
+  try{
+    ensureAudio();
+    await ctx.resume();
+    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
+    track = stream.getVideoTracks()[0];
+    const pv = $('pv'); pv.srcObject = stream;
+    await Promise.race([new Promise(r => pv.onloadedmetadata = r), new Promise(r => setTimeout(r, 1500))]);
+    await new Promise(r => setTimeout(r, 300));
+    const caps = track.getCapabilities ? track.getCapabilities() : {};
+    torchOK = !!caps.torch;
+    await requestWake();
+    const lat = Math.round(((ctx.outputLatency || 0) + (ctx.baseLatency || 0)) * 1000);
+    st.innerHTML = (torchOK ? '✅ フラッシュ制御：対応' : '⚠️ フラッシュ制御：非対応（画面フラッシュのみ）')
+      + '<br>音声出力の遅延（端末申告）：約 ' + lat + ' ms';
+    ['go','tWhistle','tVoice2','tSound','tFlash'].forEach(id => $(id).disabled = false);
+    setBadge(torchOK ? 'ok' : 'warn');
+  }catch(e){
+    setBadge('ng');
+    st.textContent = '❌ 準備に失敗：' + e.message + '（HTTPSで開いているか、カメラ許可を確認）';
+  }
+}
+
+function ensureAudio(){
+  try{ if(navigator.audioSession) navigator.audioSession.type = 'playback'; }catch(e){} // iOS: マナーモードでも鳴らす
+  if(ctx) return;
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  // 経路：音源 → ソフトリミッター（飽和で音圧を上げ、上限を超えても割れない）→ 全体音量 → スピーカー
+  master = ctx.createGain(); master.gain.value = S.vol / 100; master.connect(ctx.destination);
+  shaper = ctx.createWaveShaper(); shaper.curve = softClipCurve(1.5); shaper.oversample = '4x';
+  shaper.connect(master);
+}
+
+async function requestWake(){ try{ wakeLock = await navigator.wakeLock.request('screen'); }catch(e){} }
+
+function setTorch(on){
+  if(!torchOK || !track) return Promise.resolve();
+  return track.applyConstraints({advanced:[{torch:on}]}).catch(()=>{});
+}
+function screenFlash(ms){ const f = $('flash'); f.style.opacity = 1; setTimeout(() => f.style.opacity = 0, ms); }
+
+// 1回の進行ごとの出力経路（中止時に切断して即座に無音にする）
+function newBus(){ bus = ctx.createGain(); bus.connect(shaper); return bus; }
+
+// tanhカーブ：小さい音は持ち上げ、大きい音はなめらかに頭打ち（出力は必ず±1以内）
+function softClipCurve(k){
+  const n = 2048, c = new Float32Array(n), norm = Math.tanh(k);
+  for(let i = 0; i < n; i++){ const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(k * x) / norm; }
+  return c;
+}
+function killBus(){ if(bus){ try{ bus.disconnect(); }catch(e){} bus = null; } }
+
+// ホイッスル音（高音＋ビブラートで笛のトリルを再現）
+function whistleTone(at, dur, out, freq = 2900, vol = S.volWhistle){
+  const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
+  const lfo = ctx.createOscillator(); lfo.frequency.value = 30;
+  const lg = ctx.createGain(); lg.gain.value = 160; lfo.connect(lg); lg.connect(o.frequency);
+  const g = ctx.createGain();
+  const peak = 1.0 * vol / 100;
+  g.gain.setValueAtTime(0, at);
+  g.gain.linearRampToValueAtTime(peak, at + 0.01);
+  g.gain.setValueAtTime(peak, at + dur - 0.03);
+  g.gain.linearRampToValueAtTime(0, at + dur);
+  o.connect(g); g.connect(out);
+  o.start(at); lfo.start(at); o.stop(at + dur + 0.01); lfo.stop(at + dur + 0.01);
+}
+// ピッ×4 → ピー（戻り値＝全体の秒数）
+function whistleSeq(out){
+  const t = ctx.currentTime + 0.05;
+  const SD = 0.14, LD = 1.3; // ピッ／ピーの長さ
+  let x = 0;
+  for(let i = 0; i < 4; i++){
+    whistleTone(t + x, SD, out);
+    x += SD + (i < 3 ? S.shortGap : S.longGap);
+  }
+  whistleTone(t + x, LD, out);
+  return 0.05 + x + LD;
+}
+const rand = (a, b) => { const lo = Math.min(a, b), hi = Math.max(a, b); return lo + Math.random() * (hi - lo); };
+
+// スタート音（3種類）。f＝基本周波数、2音目はその1.5倍（5度上）を重ねる
+//  horn   ：最初の版と同じノコギリ波2音・同じ音量配分
+//  whistle：笛と同じ音色の短い「ピッ」
+//  bright ：矩形波2音（各0.5で合計しても±1を超えない）
+function beep(at, out){
+  const type = S.beepType, f = S.beepFreq[type];
+  if(type === 'whistle'){ whistleTone(at, 0.3, out, f, S.volBeep); return; }
+  const g = ctx.createGain();
+  const peak = (type === 'horn' ? 0.9 : 1.0) * S.volBeep / 100;
+  g.gain.setValueAtTime(0, at);
+  g.gain.linearRampToValueAtTime(peak, at + 0.005);
+  g.gain.setValueAtTime(peak, at + 0.28);
+  g.gain.linearRampToValueAtTime(0, at + 0.32);
+  g.connect(out);
+  [f, f * 1.5].forEach(fq => {
+    const o = ctx.createOscillator();
+    o.type = type === 'horn' ? 'sawtooth' : 'square';
+    o.frequency.value = fq;
+    const h = ctx.createGain(); h.gain.value = type === 'horn' ? 1.0 : 0.5;
+    o.connect(h); h.connect(g); o.start(at); o.stop(at + 0.33);
+  });
+}
+
+// 英語の声の一覧を作り、未選択なら男性らしい名前の声を自動で選ぶ
+const MALE_HINT = /\bmale\b|daniel|alex|fred|aaron|arthur|rishi|gordon|oliver|james|tom\b|guy|ryan|eddy|reed|rocko|grandpa/i;
+function populateVoices(){
+  if(!('speechSynthesis' in window)) return;
+  const all = speechSynthesis.getVoices();
+  const en = all.filter(v => /^en/i.test(v.lang));
+  const list = en.length ? en : all;
+  if(!list.length) return;
+  if(!S.voiceName || !list.some(v => v.name === S.voiceName)){
+    const guess = list.find(v => MALE_HINT.test(v.name) && !/female/i.test(v.name));
+    S.voiceName = (guess || list[0]).name; save();
+  }
+  $('voiceSel').innerHTML = list.map(v =>
+    `<option value="${v.name.replace(/"/g,'&quot;')}"${v.name === S.voiceName ? ' selected' : ''}>${v.name}（${v.lang}）</option>`).join('');
+}
+if('speechSynthesis' in window){
+  populateVoices();
+  speechSynthesis.onvoiceschanged = populateVoices;
+}
+
+function speak(text){
+  return new Promise(res => {
+    if(!('speechSynthesis' in window)) return res();
+    const u = new SpeechSynthesisUtterance(text);
+    const v = speechSynthesis.getVoices().find(v => v.name === S.voiceName);
+    if(v){ u.voice = v; u.lang = v.lang; } else u.lang = 'en-US';
+    u.rate = S.rate; u.volume = Math.min(1, (S.vol / 100) * (S.volVoice / 100));
+    const t = setTimeout(res, 4000);
+    u.onend = () => { clearTimeout(t); res(); };
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  });
+}
+
+// ===== 録音した声 =====
+const REC_KEY = 'takeYourMarks.voice';
+let recData = null, recSR = 48000, mediaRec = null, recStream = null, recTimer = null, recTick = null;
+
+function f32ToB64(f){
+  const i16 = new Int16Array(f.length);
+  for(let i = 0; i < f.length; i++) i16[i] = Math.max(-1, Math.min(1, f[i])) * 32767;
+  const u8 = new Uint8Array(i16.buffer); let bin = '';
+  for(let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+function b64ToF32(b){
+  const bin = atob(b), u8 = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const i16 = new Int16Array(u8.buffer), f = new Float32Array(i16.length);
+  for(let i = 0; i < i16.length; i++) f[i] = i16[i] / 32767;
+  return f;
+}
+function showRec(state){
+  const box = $('recInfo').parentElement;
+  box.classList.remove('ok','live');
+  if(state === 'live') return box.classList.add('live');
+  if(recData){ box.classList.add('ok'); $('recInfo').textContent = '録音済み ' + (recData.length / recSR).toFixed(1) + ' 秒'; }
+  else $('recInfo').textContent = '未録音';
+  $('recDel').disabled = !recData;
+}
+function loadRec(){
+  try{
+    const o = JSON.parse(localStorage.getItem(REC_KEY) || 'null');
+    if(o){ recData = b64ToF32(o.d); recSR = o.sr; }
+  }catch(e){ recData = null; }
+  showRec();
+}
+
+// 前後の無音をカットし、ピークを揃える
+function processRec(buf){
+  const n = buf.length, ch = buf.numberOfChannels, x = new Float32Array(n);
+  for(let c = 0; c < ch; c++){ const d = buf.getChannelData(c); for(let i = 0; i < n; i++) x[i] += d[i] / ch; }
+  let peak = 0; for(let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(x[i]));
+  if(peak < 0.005) return false;
+  const thr = Math.max(0.01, peak * 0.06), sr = buf.sampleRate;
+  let a = 0, b = n - 1;
+  while(a < n && Math.abs(x[a]) < thr) a++;
+  while(b > a && Math.abs(x[b]) < thr) b--;
+  a = Math.max(0, a - Math.round(0.03 * sr)); b = Math.min(n, b + Math.round(0.12 * sr));
+  const y = x.slice(a, b), g = 0.98 / peak, fade = Math.round(0.005 * sr);
+  for(let i = 0; i < y.length; i++){
+    let k = g;
+    if(i < fade) k *= i / fade;
+    if(i > y.length - fade) k *= (y.length - i) / fade;
+    y[i] *= k;
+  }
+  recData = y; recSR = sr;
+  try{ localStorage.setItem(REC_KEY, JSON.stringify({sr, d:f32ToB64(y)})); }catch(e){}
+  return true;
+}
+
+async function startRec(){
+  if(!window.MediaRecorder){ $('recInfo').textContent = 'この端末は録音に非対応です'; return; }
+  ensureAudio(); await ctx.resume();
+  try{ if(navigator.audioSession) navigator.audioSession.type = 'play-and-record'; }catch(e){}
+  try{
+    recStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:true, autoGainControl:false}});
+  }catch(e){ $('recInfo').textContent = 'マイクを使えません：' + e.message; return endRecSession(); }
+  const chunks = [];
+  mediaRec = new MediaRecorder(recStream);
+  mediaRec.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
+  mediaRec.onstop = async () => {
+    endRecSession();
+    try{
+      const blob = new Blob(chunks, {type: mediaRec.mimeType});
+      const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+      if(!processRec(buf)){ showRec(); $('recInfo').textContent = '声が検出できませんでした。もう一度どうぞ'; return; }
+      showRec();
+    }catch(e){ showRec(); $('recInfo').textContent = '録音の読み込みに失敗：' + e.message; }
+  };
+  mediaRec.start();
+  $('recBtn').textContent = '■ 停止'; $('recBtn').classList.add('on');
+  showRec('live');
+  const t0 = performance.now();
+  recTick = setInterval(() => { $('recInfo').textContent = '● 録音中 ' + ((performance.now() - t0) / 1000).toFixed(1) + ' 秒'; }, 100);
+  recTimer = setTimeout(stopRec, 4000);
+}
+function stopRec(){ if(mediaRec && mediaRec.state === 'recording') mediaRec.stop(); }
+function endRecSession(){
+  clearTimeout(recTimer); clearInterval(recTick);
+  if(recStream){ recStream.getTracks().forEach(t => t.stop()); recStream = null; } // マイクを確実に解放（iOSで音量が下がるのを防ぐ）
+  try{ if(navigator.audioSession) navigator.audioSession.type = 'playback'; }catch(e){}
+  $('recBtn').textContent = '● 録音'; $('recBtn').classList.remove('on');
+}
+
+// 録音した声を再生（戻り値＝秒数）。強調オン：低音カット → 子音帯域を持ち上げ → 圧縮
+function playRec(out){
+  const b = ctx.createBuffer(1, recData.length, recSR);
+  b.copyToChannel(recData, 0);
+  const src = ctx.createBufferSource(); src.buffer = b;
+  const g = ctx.createGain(); g.gain.value = S.volVoice / 100;
+  if(S.enhance){
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 200; hp.Q.value = 0.7;
+    const pk = ctx.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 3000; pk.Q.value = 1; pk.gain.value = 6;
+    const cp = ctx.createDynamicsCompressor();
+    cp.threshold.value = -24; cp.knee.value = 6; cp.ratio.value = 4; cp.attack.value = 0.003; cp.release.value = 0.15;
+    const mk = ctx.createGain(); mk.gain.value = 1.4;
+    src.connect(hp); hp.connect(pk); pk.connect(cp); cp.connect(mk); mk.connect(g);
+  } else src.connect(g);
+  g.connect(out);
+  src.start(ctx.currentTime + 0.02);
+  return b.duration + 0.02;
+}
+
+async function sayMarks(out){
+  if(S.voiceSrc === 'rec' && recData){
+    await waitA(playRec(out) * 1000);
+  } else {
+    await speak('Take your marks');
+  }
+  if(abort) throw ABORT;
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const ABORT = new Error('abort');
+async function waitA(ms, onTick){
+  const t0 = performance.now();
+  while(true){
+    const left = ms - (performance.now() - t0);
+    if(abort) throw ABORT;
+    if(left <= 0) return;
+    if(onTick) onTick(left);
+    await sleep(Math.min(20, left));
+  }
+}
+
+// 音と光を同じ時刻に：音はAudioContextの時計で予約し、光はその到達予定時刻＋補正で発火
+function fire({sound = true, light = true} = {}, out){
+  const lead = 0.12;
+  const tAudio = ctx.currentTime + lead;
+  if(sound) beep(tAudio, out || shaper);
+  const outLat = (ctx.outputLatency || 0) + (ctx.baseLatency || 0);
+  const soundWall = performance.now() + (lead + outLat) * 1000;
+  const delay = Math.max(0, soundWall + S.offset - performance.now());
+  if(light) setTimeout(() => {
+    setTorch(true); screenFlash(S.flashMs);
+    setTimeout(() => setTorch(false), S.flashMs);
+  }, delay);
+}
+
+const setPhase = (p, c = '') => { $('phase').textContent = p; $('count').textContent = c; };
+
+async function go(){
+  if(busy) return; busy = true; abort = false;
+  $('go').disabled = true; $('stop').disabled = false;
+  await ctx.resume(); await requestWake();
+  const out = newBus();
+  try{
+    // 1. セルフタイマー
+    if(S.timer > 0){
+      await waitA(S.timer * 1000, left => setPhase('セルフタイマー', Math.ceil(left / 1000)));
+    }
+    // 2. 笛：ピッ×3 → ピー（ピーで台に上がる）
+    if(S.whistle){
+      setPhase('笛', '');
+      const dur = whistleSeq(out);
+      await waitA(dur * 1000);
+      // 3. 台に上がって構えるまで（ランダム。予測できないよう残り秒数は表示しない）
+      setPhase('台へ');
+      await waitA(rand(S.climbMin, S.climbMax) * 1000);
+    }
+    // 4. Take your marks
+    if(S.voice){
+      setPhase('Take your marks');
+      await sayMarks(out);
+    }
+    // 5. ホールド（ランダム）→ スタート音＋フラッシュ
+    setPhase('…');
+    await waitA(rand(S.holdMin, S.holdMax) * 1000);
+    fire({}, out);
+    setPhase('GO');
+  }catch(e){
+    if(e === ABORT){ killBus(); speechSynthesis.cancel(); setPhase('中止'); }
+    else throw e;
+  }finally{
+    busy = false; $('go').disabled = false; $('stop').disabled = true;
+  }
+}
+
+$('prep').onclick = prepare;
+$('go').onclick = go;
+$('stop').onclick = () => { abort = true; killBus(); speechSynthesis.cancel(); };
+$('tWhistle').onclick = async () => { await ctx.resume(); whistleSeq(shaper); };
+$('tSound').onclick = async () => { await ctx.resume(); fire({light:false}); };
+$('tBeep2').onclick = async () => {
+  if(!ctx){ $('status').textContent = '先に「① 準備」を押してください'; return; }
+  await ctx.resume(); fire({light:false});
+};
+$('tFlash').onclick = () => fire({sound:false});
+$('tVoice2').onclick = () => $('tVoice').onclick();
+$('tVoice').onclick = async () => {
+  ensureAudio(); await ctx.resume();
+  if(S.voiceSrc === 'rec' && recData) playRec(shaper); else speak('Take your marks');
+};
+$('recBtn').onclick = () => { if(mediaRec && mediaRec.state === 'recording') stopRec(); else startRec(); };
+$('recDel').onclick = () => { recData = null; try{ localStorage.removeItem(REC_KEY); }catch(e){} showRec(); };
+loadRec();
+
+// カメラ欄のバッジ（閉じていても状態がわかる）
+function setBadge(st){
+  const b = $('camBadge');
+  b.className = 'badge' + (st === 'ok' || st === 'warn' ? ' ok' : st === 'ng' ? ' ng' : '');
+  b.textContent = st === 'ok' ? '準備OK' : st === 'warn' ? '準備OK（画面光）' : st === 'ng' ? '失敗' : '未準備';
+}
+// 設定欄の開閉状態を記憶（カメラ欄は毎回開いた状態で始める）
+const FOLD_KEY = 'takeYourMarks.fold';
+let foldState = {};
+try{ foldState = JSON.parse(localStorage.getItem(FOLD_KEY) || '{}'); }catch(e){}
+document.querySelectorAll('details.fold[data-key]').forEach(d => {
+  d.open = !!foldState[d.dataset.key];
+  d.addEventListener('toggle', () => {
+    foldState[d.dataset.key] = d.open;
+    try{ localStorage.setItem(FOLD_KEY, JSON.stringify(foldState)); }catch(e){}
+  });
+});
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && wakeLock) requestWake(); });
+// オフラインでも使えるよう Service Worker を登録
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+</script>
+</body>
+</html>
